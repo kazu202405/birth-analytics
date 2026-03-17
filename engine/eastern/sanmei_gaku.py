@@ -112,6 +112,71 @@ ZOUKAN_MAIN = {
     "申": "庚", "酉": "辛", "戌": "戊", "亥": "壬",
 }
 
+# ── 十二大従星（十二運→星名マッピング） ──
+JUNI_UNSEI_NAMES = ["長生", "沐浴", "冠帯", "臨官", "帝旺", "衰", "病", "死", "墓", "絶", "胎", "養"]
+
+JUNI_TO_DAIJUSEI = {
+    "長生": "天貴星", "沐浴": "天恍星", "冠帯": "天南星", "臨官": "天禄星",
+    "帝旺": "天将星", "衰": "天堂星", "病": "天胡星", "死": "天極星",
+    "墓": "天庫星", "絶": "天馳星", "胎": "天報星", "養": "天印星",
+}
+
+DAIJUSEI_DESCRIPTIONS = {
+    "天報星": {"energy": 3, "stage": "胎児", "trait": "多芸多才・器用・変化を好む。前世の記憶を持つとされる。"},
+    "天印星": {"energy": 6, "stage": "赤ちゃん", "trait": "愛される力・無邪気・人から助けられやすい。"},
+    "天貴星": {"energy": 9, "stage": "幼児", "trait": "品格・プライド・純粋な向上心。育ちの良さが出る。"},
+    "天恍星": {"energy": 7, "stage": "少年少女", "trait": "夢見がち・ロマンチスト・空想力が豊か。"},
+    "天南星": {"energy": 8, "stage": "青年", "trait": "闘争心・前進力・若さのエネルギー。反骨精神。"},
+    "天禄星": {"energy": 11, "stage": "壮年", "trait": "堅実・信用・社会的成功。現実処理能力が高い。"},
+    "天将星": {"energy": 12, "stage": "大将", "trait": "最強のエネルギー・リーダー・トップに立つ器。"},
+    "天堂星": {"energy": 8, "stage": "老人", "trait": "穏やか・包容力・経験からくる知恵と落ち着き。"},
+    "天胡星": {"energy": 4, "stage": "病人", "trait": "霊感・芸術性・繊細な感受性。見えない世界との繋がり。"},
+    "天極星": {"energy": 2, "stage": "死人", "trait": "悟り・無欲・精神世界に生きる。現実離れした感覚。"},
+    "天庫星": {"energy": 5, "stage": "入墓", "trait": "収集・蓄積・先祖との繋がり。歴史や伝統を守る。"},
+    "天馳星": {"energy": 1, "stage": "あの世", "trait": "直感・瞬発力・超スピード。あの世のエネルギー。"},
+}
+
+# 日干ごとの十二運「長生」の地支（陽干は順行、陰干は逆行）
+CHOSHO_SHI = {
+    "甲": 2,  # 寅
+    "乙": 5,  # 午（逆行）
+    "丙": 2,  # 寅... 実際は巳
+    "丁": 5,  # 午... 実際は酉（逆行）
+    "戊": 2,  # 寅... 実際は巳
+    "己": 5,  # 午... 実際は酉（逆行）
+    "庚": 2,  # 寅... 実際は巳
+    "辛": 0,  # 子（逆行）
+    "壬": 8,  # 申
+    "癸": 5,  # 午... 実際は卯（逆行）
+}
+# 正確な長生位置テーブル
+CHOSHO_SHI_ACCURATE = {
+    "甲": 2,   # 寅
+    "乙": 6,   # 午
+    "丙": 5,   # 巳
+    "丁": 9,   # 酉
+    "戊": 5,   # 巳
+    "己": 9,   # 酉
+    "庚": 8,   # 申
+    "辛": 0,   # 子
+    "壬": 8,   # 申
+    "癸": 3,   # 卯
+}
+
+
+def _get_daijusei(day_kan: str, shi: str) -> str:
+    """日干と地支から十二大従星を算出する。"""
+    start = CHOSHO_SHI_ACCURATE[day_kan]
+    shi_idx = JUNISHI.index(shi)
+    day_idx = JIKKAN.index(day_kan)
+    # 陽干は順行、陰干は逆行
+    if day_idx % 2 == 0:  # 陽干
+        offset = (shi_idx - start) % 12
+    else:  # 陰干
+        offset = (start - shi_idx) % 12
+    unsei = JUNI_UNSEI_NAMES[offset]
+    return JUNI_TO_DAIJUSEI[unsei]
+
 
 def _get_tsuhensei(day_kan: str, other_kan: str) -> str:
     """日干と他の干の関係から通変星を算出する。"""
@@ -173,6 +238,8 @@ def _build_jintai_seizu(
 
 def _build_interpretation(
     jintai: dict[str, str],
+    uchuban: dict[str, str],
+    total_energy: int,
     day_kan: str,
     day_gogyo: str,
     day_inyo: str,
@@ -184,20 +251,27 @@ def _build_interpretation(
     lines.append(f"【日干】{day_kan}（{day_gogyo}の{day_inyo}）")
     lines.append("")
 
-    # 人体星図
-    lines.append("【人体星図（陽占）】")
-    pos_labels = {
-        "north": "頭（北）  ",
-        "east": "左手（東）",
-        "center": "胸（中央）",
-        "west": "右手（西）",
-        "south": "腹（南）  ",
-    }
-    display_order = ["north", "east", "center", "west", "south"]
-    for pos in display_order:
-        star = jintai[pos]
-        label = pos_labels[pos]
-        lines.append(f"  {label}: {star}")
+    # 宇宙盤（人体星図 + 十二大従星）
+    rt = uchuban["right_top"]
+    lb = uchuban["left_bottom"]
+    rb = uchuban["right_bottom"]
+    lines.append("【宇宙盤（陽占）】")
+    lines.append(f"  ┌────┬────┬────┐")
+    lines.append(f"  │    │{jintai['north']:^4}│{rt:^4}│")
+    lines.append(f"  ├────┼────┼────┤")
+    lines.append(f"  │{jintai['east']:^4}│{jintai['center']:^4}│{jintai['west']:^4}│")
+    lines.append(f"  ├────┼────┼────┤")
+    lines.append(f"  │{lb:^4}│{jintai['south']:^4}│{rb:^4}│")
+    lines.append(f"  └────┴────┴────┘")
+    lines.append(f"  エネルギー合計: {total_energy}点")
+    lines.append("")
+
+    # 十二大従星の解説
+    lines.append("【十二大従星】")
+    for label, star in [("右上(年)", rt), ("左下(日)", lb), ("右下(月)", rb)]:
+        info = DAIJUSEI_DESCRIPTIONS.get(star, {})
+        lines.append(f"  {label}: {star}（{info.get('stage', '')}・エネルギー{info.get('energy', '?')}）")
+        lines.append(f"    {info.get('trait', '')}")
 
     lines.append("")
 
@@ -245,14 +319,31 @@ def calculate(birth_data: BirthData) -> DivinationResult:
     day_gogyo = kanshi_to_gogyo(day_kan)
     day_inyo = kanshi_to_inyo(day_kan)
 
-    # 人体星図
+    # 人体星図（十大主星）
     jintai = _build_jintai_seizu(day_kan, month_kan, year_kan, day_shi, month_shi, year_shi)
+
+    # 十二大従星（宇宙盤の角）
+    daijusei_right_top = _get_daijusei(day_kan, year_shi)   # 右上: 日干 vs 年支
+    daijusei_left_bottom = _get_daijusei(day_kan, day_shi)  # 左下: 日干 vs 日支
+    daijusei_right_bottom = _get_daijusei(day_kan, month_shi)  # 右下: 日干 vs 月支
+
+    uchuban = {
+        "right_top": daijusei_right_top,
+        "left_bottom": daijusei_left_bottom,
+        "right_bottom": daijusei_right_bottom,
+    }
+
+    # エネルギー合計
+    total_energy = sum(
+        DAIJUSEI_DESCRIPTIONS.get(s, {}).get("energy", 0)
+        for s in [daijusei_right_top, daijusei_left_bottom, daijusei_right_bottom]
+    )
 
     # 空亡（天中殺）
     kuubou = get_kuubou(day_kan, day_shi)
 
     interpretation = _build_interpretation(
-        jintai, day_kan, day_gogyo, day_inyo, kuubou
+        jintai, uchuban, total_energy, day_kan, day_gogyo, day_inyo, kuubou
     )
 
     center_star = jintai["center"]
@@ -276,6 +367,8 @@ def calculate(birth_data: BirthData) -> DivinationResult:
             "jintai_seizu": jintai,
             "center_star": center_star,
             "center_keyword": center_info.get("keyword", ""),
+            "uchuban": uchuban,
+            "total_energy": total_energy,
             "tenchuu_satsu": list(kuubou),
         },
         interpretation=interpretation,
