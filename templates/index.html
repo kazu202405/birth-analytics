@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+{% block title %}誕生日総合占術 | 25種以上の占いを一括鑑定{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex flex-col items-center justify-center px-4 py-12">
+
+  <!-- Hero -->
+  <div class="text-center mb-12 fade-in">
+    <div class="text-5xl mb-4">&#x2728;</div>
+    <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-3">
+      <span class="bg-gradient-to-r from-violet-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent">
+        誕生日総合占術
+      </span>
+    </h1>
+    <p class="text-zinc-400 text-lg md:text-xl max-w-lg mx-auto leading-relaxed">
+      生年月日を入力するだけで、<br class="md:hidden">
+      <span class="text-zinc-300 font-medium">25種以上の占術</span>であなたの本質を解き明かす
+    </p>
+  </div>
+
+  <!-- Form Card -->
+  <div class="w-full max-w-md fade-in" style="animation-delay: 0.2s;">
+    <form action="/result" method="GET"
+          class="bg-zinc-900/80 backdrop-blur border border-zinc-800 rounded-2xl p-8 glow-sm">
+
+      {% if error %}
+      <div class="mb-6 p-3 bg-red-900/30 border border-red-800/50 rounded-lg text-red-300 text-sm">
+        {{ error }}
+      </div>
+      {% endif %}
+
+      <!-- Birth Date -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-zinc-300 mb-2">
+          生年月日 <span class="text-accent-400">*</span>
+        </label>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <select name="year" id="year" required
+                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 outline-none transition">
+              <option value="">年</option>
+            </select>
+          </div>
+          <div>
+            <select name="month" id="month" required
+                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 outline-none transition">
+              <option value="">月</option>
+            </select>
+          </div>
+          <div>
+            <select name="day" id="day" required
+                    class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 outline-none transition">
+              <option value="">日</option>
+            </select>
+          </div>
+        </div>
+        <!-- Hidden field to combine into YYYY-MM-DD -->
+        <input type="hidden" name="date" id="date-combined">
+      </div>
+
+      <!-- Birth Time (optional) -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-zinc-300 mb-2">
+          出生時刻 <span class="text-zinc-500 text-xs">（任意）</span>
+        </label>
+        <input type="time" name="time"
+               class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 outline-none transition"
+               placeholder="12:00">
+      </div>
+
+      <!-- Gender (optional) -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-zinc-300 mb-2">
+          性別 <span class="text-zinc-500 text-xs">（任意・風水命卦等で使用）</span>
+        </label>
+        <div class="flex gap-3">
+          <label class="flex-1 cursor-pointer">
+            <input type="radio" name="gender" value="" class="peer hidden" checked>
+            <div class="peer-checked:border-accent-500 peer-checked:text-accent-400 border border-zinc-700 rounded-lg py-2 text-center text-sm transition hover:border-zinc-600">
+              未選択
+            </div>
+          </label>
+          <label class="flex-1 cursor-pointer">
+            <input type="radio" name="gender" value="M" class="peer hidden">
+            <div class="peer-checked:border-accent-500 peer-checked:text-accent-400 border border-zinc-700 rounded-lg py-2 text-center text-sm transition hover:border-zinc-600">
+              男性
+            </div>
+          </label>
+          <label class="flex-1 cursor-pointer">
+            <input type="radio" name="gender" value="F" class="peer hidden">
+            <div class="peer-checked:border-accent-500 peer-checked:text-accent-400 border border-zinc-700 rounded-lg py-2 text-center text-sm transition hover:border-zinc-600">
+              女性
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Name (optional) -->
+      <div class="mb-8">
+        <label class="block text-sm font-medium text-zinc-300 mb-2">
+          氏名 <span class="text-zinc-500 text-xs">（任意・カバラ数秘術で使用）</span>
+        </label>
+        <input type="text" name="name"
+               class="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2.5 text-zinc-100 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 outline-none transition"
+               placeholder="山田 太郎">
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" id="submit-btn"
+              class="w-full shimmer text-white font-bold py-3.5 rounded-xl text-lg tracking-wide glow transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+        鑑定する
+      </button>
+    </form>
+  </div>
+
+  <!-- Categories Preview -->
+  <div class="mt-12 max-w-2xl mx-auto fade-in" style="animation-delay: 0.4s;">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-sm">
+      <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-2">
+        <div class="text-2xl mb-1">🏯</div>
+        <div class="text-zinc-400">東洋占術</div>
+      </div>
+      <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-2">
+        <div class="text-2xl mb-1">🌟</div>
+        <div class="text-zinc-400">西洋占術</div>
+      </div>
+      <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-2">
+        <div class="text-2xl mb-1">🌀</div>
+        <div class="text-zinc-400">マヤ暦</div>
+      </div>
+      <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-2">
+        <div class="text-2xl mb-1">🐾</div>
+        <div class="text-zinc-400">動物占い</div>
+      </div>
+      <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-2">
+        <div class="text-2xl mb-1">🏛️</div>
+        <div class="text-zinc-400">古代文明</div>
+      </div>
+      <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-2">
+        <div class="text-2xl mb-1">🔮</div>
+        <div class="text-zinc-400">シンボル</div>
+      </div>
+      <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-2">
+        <div class="text-2xl mb-1">⚡</div>
+        <div class="text-zinc-400">エネルギー</div>
+      </div>
+      <div class="bg-zinc-900/50 border border-zinc-800/50 rounded-xl py-3 px-2">
+        <div class="text-2xl mb-1">📅</div>
+        <div class="text-zinc-400">その他</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Populate year/month/day dropdowns
+  const yearSel = document.getElementById('year');
+  const monthSel = document.getElementById('month');
+  const daySel = document.getElementById('day');
+  const now = new Date();
+
+  for (let y = now.getFullYear(); y >= 1930; y--) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y + '年';
+    yearSel.appendChild(opt);
+  }
+  for (let m = 1; m <= 12; m++) {
+    const opt = document.createElement('option');
+    opt.value = m; opt.textContent = m + '月';
+    monthSel.appendChild(opt);
+  }
+  for (let d = 1; d <= 31; d++) {
+    const opt = document.createElement('option');
+    opt.value = d; opt.textContent = d + '日';
+    daySel.appendChild(opt);
+  }
+
+  // Combine date before submit
+  document.querySelector('form').addEventListener('submit', function(e) {
+    const y = yearSel.value;
+    const m = monthSel.value.padStart(2, '0');
+    const d = daySel.value.padStart(2, '0');
+    if (!y || !monthSel.value || !daySel.value) {
+      e.preventDefault();
+      alert('生年月日を入力してください');
+      return;
+    }
+    document.getElementById('date-combined').value = `${y}-${m}-${d}`;
+    // Remove individual selects from form submission
+    yearSel.removeAttribute('name');
+    monthSel.removeAttribute('name');
+    daySel.removeAttribute('name');
+    // Show loading
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = '鑑定中...';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}

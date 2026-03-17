@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}誕生日総合占術{% endblock %}</title>
+  <meta name="description" content="生年月日を入力するだけで、四柱推命・数秘術・動物占い・マヤ暦など25種以上の占術結果を一括算出。">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans JP"', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            accent: { 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed', 700: '#6d28d9' },
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Noto Sans JP', system-ui, sans-serif; }
+
+    .shimmer {
+      background: linear-gradient(110deg, #7c3aed 0%, #a78bfa 30%, #c4b5fd 50%, #a78bfa 70%, #7c3aed 100%);
+      background-size: 200% 100%;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .glow { box-shadow: 0 0 30px rgba(139, 92, 246, 0.3); }
+    .glow-sm { box-shadow: 0 0 15px rgba(139, 92, 246, 0.15); }
+
+    .fade-in { animation: fadeIn 0.6s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bg-cosmic {
+      background: radial-gradient(ellipse at 20% 50%, rgba(88, 28, 135, 0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(109, 40, 217, 0.1) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 80%, rgba(30, 27, 75, 0.2) 0%, transparent 60%),
+                  #09090b;
+    }
+
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.12); }
+
+    details summary { cursor: pointer; list-style: none; }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before {
+      content: '▶';
+      display: inline-block;
+      margin-right: 8px;
+      font-size: 0.7em;
+      transition: transform 0.2s;
+      color: #a78bfa;
+    }
+    details[open] summary::before { transform: rotate(90deg); }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-cosmic min-h-screen text-zinc-100">
+  {% block content %}{% endblock %}
+
+  <footer class="text-center py-8 text-zinc-600 text-sm border-t border-zinc-800/50 mt-16">
+    <p>誕生日総合占術エンジン v1.0</p>
+    <p class="mt-1">占いは参考としてお楽しみください</p>
+  </footer>
+</body>
+</html>

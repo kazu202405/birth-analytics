@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}鑑定結果 — {{ birth_date }} | 誕生日総合占術{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="text-center mb-10 fade-in">
+    <a href="/" class="inline-block text-zinc-500 hover:text-zinc-300 text-sm mb-6 transition">
+      ← 新しい鑑定
+    </a>
+    <h1 class="text-3xl md:text-4xl font-bold mb-2">
+      <span class="bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent">
+        鑑定結果
+      </span>
+    </h1>
+    <p class="text-zinc-400 text-lg">
+      {{ birth_date }}
+      {% if birth_time %} {{ birth_time }}{% endif %}
+      {% if gender == "M" %} / 男性{% elif gender == "F" %} / 女性{% endif %}
+      {% if name %} / {{ name }}{% endif %}
+    </p>
+    <p class="text-zinc-500 text-sm mt-1">
+      {{ result.meta.total_systems }}種の占術で鑑定
+    </p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-10 fade-in" style="animation-delay:0.1s">
+    {% for cat_id, systems in result.results.items() %}
+      {% for sys_id, data in systems.items() %}
+        {% if loop.index0 < 6 %}
+        <div class="bg-zinc-900/60 border border-zinc-800/60 rounded-xl p-4 card-hover">
+          <div class="text-xs text-accent-400 mb-1">{{ data.system_name }}</div>
+          <div class="text-sm font-medium text-zinc-200 leading-snug">{{ data.summary }}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <!-- Category Sections -->
+  {% for cat_id, cat_info in categories.items() %}
+    {% if cat_id in result.results %}
+    <div class="mb-8 fade-in" style="animation-delay:{{ loop.index0 * 0.1 }}s">
+      <!-- Category Header -->
+      <div class="flex items-center gap-3 mb-4 pb-2 border-b border-zinc-800/60">
+        <span class="text-2xl">{{ cat_info.icon }}</span>
+        <h2 class="text-xl font-bold text-zinc-200">{{ cat_info.name }}</h2>
+        <span class="text-xs text-zinc-600 ml-auto">
+          {{ result.results[cat_id] | length }}占術
+        </span>
+      </div>
+
+      <!-- Divination Cards -->
+      <div class="space-y-3">
+        {% for sys_id, data in result.results[cat_id].items() %}
+        <details class="group bg-zinc-900/50 border border-zinc-800/40 rounded-xl overflow-hidden card-hover">
+          <summary class="flex items-center justify-between p-4">
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-sm font-semibold text-zinc-200">{{ data.system_name }}</span>
+                {% if data.warnings %}
+                <span class="text-xs text-amber-400/70" title="注意事項あり">&#x26A0;</span>
+                {% endif %}
+              </div>
+              <div class="text-sm text-accent-400/90 truncate">{{ data.summary }}</div>
+            </div>
+          </summary>
+
+          <div class="px-4 pb-4 border-t border-zinc-800/30">
+            <!-- Interpretation -->
+            <div class="mt-3 text-sm text-zinc-300 leading-relaxed whitespace-pre-line">{{ data.interpretation }}</div>
+
+            <!-- Details -->
+            {% if data.details %}
+            <div class="mt-4 bg-zinc-800/30 rounded-lg p-3">
+              <div class="text-xs text-zinc-500 mb-2 font-medium">詳細データ</div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 text-xs">
+                {% for key, val in data.details.items() %}
+                  {% if val is not none and val is not mapping and val is not iterable or val is string %}
+                  <div class="flex justify-between py-1 border-b border-zinc-800/30">
+                    <span class="text-zinc-500">{{ key }}</span>
+                    <span class="text-zinc-300 font-mono text-right ml-2">{{ val }}</span>
+                  </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Warnings -->
+            {% if data.warnings %}
+            <div class="mt-3 text-xs text-amber-400/70 bg-amber-900/10 rounded-lg p-2">
+              {% for w in data.warnings %}
+              <p>&#x26A0; {{ w }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </details>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <!-- Meta Info -->
+  <div class="mt-12 text-center text-xs text-zinc-600 fade-in">
+    <p>算出日時: {{ result.meta.calculated_at[:19] }} / エンジン v{{ result.meta.engine_version }}</p>
+    {% if result.meta.warnings %}
+    <div class="mt-2 text-amber-500/50">
+      {% for w in result.meta.warnings %}
+      <p>{{ w }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Share / Redo -->
+  <div class="mt-8 text-center fade-in">
+    <a href="/"
+       class="inline-block bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-300 font-medium py-2.5 px-8 rounded-xl transition">
+      もう一度鑑定する
+    </a>
+  </div>
+</div>
+
+<script>
+  // Auto-open first item in each category
+  document.querySelectorAll('.space-y-3').forEach(section => {
+    const first = section.querySelector('details');
+    if (first) first.open = true;
+  });
+</script>
+{% endblock %}
