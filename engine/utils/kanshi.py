@@ -48,24 +48,28 @@ def get_year_kanshi(year: int, month: int, day: int) -> tuple[str, str]:
 def get_month_kanshi(year: int, month: int, day: int, year_kan: str) -> tuple[str, str]:
     """月干支を返す（節入り日で月を判定）。"""
     setsu_month = get_setsu_month(month, day)
-    # 月支: 寅月(1月/旧暦)=2月節から始まる
-    shi_index = (setsu_month + 1) % 12  # 1月→寅(2), 2月→卯(3), ...
-    # 月干: 年干から算出（甲己→丙寅始まり、乙庚→戊寅始まり、...）
+    # 月支: 節月がそのまま地支インデックスに対応
+    # 1月(小寒後)→丑(1), 2月(立春後)→寅(2), 3月(啓蟄後)→卯(3), ...
+    shi_index = setsu_month % 12
+    # 月干: 年干から算出
+    # 甲己年→丙寅始まり, 乙庚年→戊寅始まり, 丙辛年→庚寅始まり,
+    # 丁壬年→壬寅始まり, 戊癸年→甲寅始まり
     year_kan_index = JIKKAN.index(year_kan)
-    base_kan = (year_kan_index % 5) * 2 + 2
-    kan_index = (base_kan + setsu_month - 1) % 10
+    base_kan = (year_kan_index % 5) * 2 + 2  # 甲→丙(2), 乙→戊(4), ...
+    # 寅月(setsu_month=2)が基準、そこからの差分
+    kan_index = (base_kan + setsu_month - 2) % 10
     return JIKKAN[kan_index], JUNISHI[shi_index]
 
 
 def get_day_kanshi(year: int, month: int, day: int) -> tuple[str, str]:
     """日干支を返す（基準日からの経過日数で算出）。"""
-    # 基準日: 1900年1月1日 = 甲子(index 0)... 実際は庚子
-    # 1900-01-01のJulian Day Number = 2415021
-    # 1900-01-01 の干支は「庚子」= index 36
+    # 基準日: 1900年1月1日 = 甲戌(index 10)
+    # 検証: JDNベースで (JDN+49)%60 の公式で算出
+    # 1949-10-01(甲子日)から逆算して検証済み
     base_date = date(1900, 1, 1)
     target_date = date(year, month, day)
     diff_days = (target_date - base_date).days
-    kanshi_index = (diff_days + 36) % 60  # 36 = 庚子のindex
+    kanshi_index = (diff_days + 10) % 60  # 10 = 甲戌のindex
     kan_index = kanshi_index % 10
     shi_index = kanshi_index % 12
     return JIKKAN[kan_index], JUNISHI[shi_index]

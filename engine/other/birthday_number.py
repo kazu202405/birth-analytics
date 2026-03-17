@@ -23,12 +23,10 @@ BIRTHDAY_MEANINGS = {
 def calculate(birth_data: BirthData) -> DivinationResult:
     day = birth_data.birth_date.day
 
-    if day in MASTER_NUMBERS:
-        number = day
-    else:
-        number = day
-        while number > 9:
-            number = sum(int(d) for d in str(number))
+    # まず桁を足す。結果がマスターナンバーなら保持
+    number = day
+    while number > 9 and number not in MASTER_NUMBERS:
+        number = sum(int(d) for d in str(number))
 
     meaning = BIRTHDAY_MEANINGS.get(number, "")
 

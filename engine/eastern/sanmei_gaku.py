@@ -140,25 +140,27 @@ def _kan_to_judai(day_kan: str, other_kan: str) -> str:
 
 
 def _build_jintai_seizu(
-    day_kan: str, month_kan: str, year_kan: str, day_shi: str
+    day_kan: str, month_kan: str, year_kan: str,
+    day_shi: str, month_shi: str, year_shi: str,
 ) -> dict[str, str]:
     """人体星図（陽占）を構築する。
 
-    配置:
-        北: 日干 × 年干
-        中央: 日干 × 月干
-        南: 日干 × 日支蔵干
-        東: 月干 × 年干（簡易: 日干基準で年干）
-        西: 月干 × 日支蔵干（簡易: 日干基準で日支蔵干）
+    正しい配置ルール:
+        中央: 日干 × 月支蔵干
+        北:   日干 × 年干
+        南:   日干 × 月干
+        東:   日干 × 日支蔵干
+        西:   日干 × 年支蔵干
     """
-    zoukan = ZOUKAN_MAIN.get(day_shi, day_kan)
+    month_zoukan = ZOUKAN_MAIN.get(month_shi, month_kan)
+    day_zoukan = ZOUKAN_MAIN.get(day_shi, day_kan)
+    year_zoukan = ZOUKAN_MAIN.get(year_shi, year_kan)
 
-    center = _kan_to_judai(day_kan, month_kan)
-    north = _kan_to_judai(day_kan, year_kan)
-    south = _kan_to_judai(day_kan, zoukan)
-    # 東と西は簡易版として日干基準で算出
-    east = _kan_to_judai(day_kan, year_kan)
-    west = _kan_to_judai(day_kan, zoukan)
+    center = _kan_to_judai(day_kan, month_zoukan)  # 日干 × 月支蔵干
+    north = _kan_to_judai(day_kan, year_kan)        # 日干 × 年干
+    south = _kan_to_judai(day_kan, month_kan)       # 日干 × 月干
+    east = _kan_to_judai(day_kan, day_zoukan)       # 日干 × 日支蔵干
+    west = _kan_to_judai(day_kan, year_zoukan)      # 日干 × 年支蔵干
 
     return {
         "center": center,
@@ -244,7 +246,7 @@ def calculate(birth_data: BirthData) -> DivinationResult:
     day_inyo = kanshi_to_inyo(day_kan)
 
     # 人体星図
-    jintai = _build_jintai_seizu(day_kan, month_kan, year_kan, day_shi)
+    jintai = _build_jintai_seizu(day_kan, month_kan, year_kan, day_shi, month_shi, year_shi)
 
     # 空亡（天中殺）
     kuubou = get_kuubou(day_kan, day_shi)
